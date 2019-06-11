@@ -1,12 +1,20 @@
 package com.example.slatejack.smartfrim1;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.view.View;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.slatejack.smartfrim1.data.Result;
+import com.example.slatejack.smartfrim1.data.Sensor;
+import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -14,16 +22,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class nongchang extends AppCompatActivity {
-    private Map<String,String> map;
-    private List<Map<String,String>> list;
+    private Map<String, String> map;
+    private List<Map<String, String>> list;
     private TextView tvcity;
     private TextView tvweather;
     private TextView tvtemp;
     private TextView tvwind;
     private TextView tvpm;
     private ImageView tvicon;
-    private  MqttManager mqttManager ;
+    private MqttManager mqttManager;
     private BaseAdapter baseAdapter;
     private TextView chuangan1_name1;
     private TextView chuangan1_name2;
@@ -37,6 +46,9 @@ public class nongchang extends AppCompatActivity {
     private TextView chuangan5_name2;
     private TextView chuangan6_name1;
     private TextView chuangan6_name2;
+    private Button button_update;
+    public static final String TAG = "MQTT";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
@@ -44,40 +56,55 @@ public class nongchang extends AppCompatActivity {
         //初始化控件
         initView();
         //解析xml文件
-        InputStream inputStream =getResources().openRawResource( R.raw.weather );
+        InputStream inputStream = getResources().openRawResource( R.raw.weather );
         try {
-            List<weatherinfo> weatherinfos=weatherservice.getInfoFromXml( inputStream );
-            list=new ArrayList<Map<String,String>>();
-            for (weatherinfo info:weatherinfos){
-                map=new HashMap<>();
-                map.put( "temp",info.getTemp() );
-                map.put( "weather",info.getWeather() );
-                map.put( "wind",info.getWind() );
-                map.put( "pm",info.getPm() );
-                map.put( "name",info.getName() );
+            List<weatherinfo> weatherinfos = weatherservice.getInfoFromXml( inputStream );
+            list = new ArrayList<Map<String, String>>();
+            for (weatherinfo info : weatherinfos) {
+                map = new HashMap<>();
+                map.put( "temp", info.getTemp() );
+                map.put( "weather", info.getWeather() );
+                map.put( "wind", info.getWind() );
+                map.put( "pm", info.getPm() );
+                map.put( "name", info.getName() );
                 list.add( map );
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //连接mqtt服务器
-        mqttManager=new MqttManager("tcp://118.24.19.135:1883",nongchang.this);
-        mqttManager.subscribe( "jcsf/gh/iotdata",0 );
-        mqttManager.connect();
-        Toast.makeText(getApplicationContext(),"连接成功", Toast.LENGTH_SHORT).show();
+
+        final Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                updateView( msg.obj.toString() );
+            }
+        };
+
+        button_update.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //连接mqtt服务器
+                mqttManager = new MqttManager( "tcp://118.24.19.135:1883", getApplicationContext(), handler );
+                mqttManager.connect();
+
+//                Toast.makeText(getApplicationContext(),"连接成功", Toast.LENGTH_SHORT).show();
+                //mqttManager.subscribe( "jcsf/gh/iotdata",0 );
+//                getmessage();
+            }
+        } );
+
         //显示天气控件到文本框中
-        getMap(1,R.drawable.sun);
-        getmessage();
+        getMap( 1, R.drawable.sun );
     }
 
     //天气信息
     private void getMap(int number, int iconnumber) {
-        Map<String,String> citymap=list.get( number-1 );
-        String weather=citymap.get( "weather" );
-        String name=citymap.get( "name" );
-        String pm=citymap.get( "pm" );
-        String wind=citymap.get( "wind" );
-        String temp=citymap.get("temp");
+        Map<String, String> citymap = list.get( number - 1 );
+        String weather = citymap.get( "weather" );
+        String name = citymap.get( "name" );
+        String pm = citymap.get( "pm" );
+        String wind = citymap.get( "wind" );
+        String temp = citymap.get( "temp" );
         tvcity.setText( name );
         tvweather.setText( weather );
         tvtemp.setText( temp );
@@ -87,30 +114,47 @@ public class nongchang extends AppCompatActivity {
 
     }
 
-    private void getmessage(){
-        String message1;
-        message1= mqttManager.apply();
-        chuangan1_name2.setText( message1 );
+
+    private void updateView(String data) {
+        Log.d( TAG, "主线程收到消息" + data );
+        chuangan1_name1.setText( data );
+        Gson gson = new Gson();
+        Result res = gson.fromJson( data, Result.class );
+        if (res.getObj().equals( "Sens" )) {
+            for (Sensor sensor : res.getPayload()) {
+                switch (sensor.getType()) {
+                    case Sensor.SENSOR_LIGHT:
+
+                        break;
+                    case Sensor.SENSOR_CO2:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
     }
 
     private void initView() {
-      tvcity = findViewById( R.id.city );
-      tvweather=findViewById( R.id.weather );
-      tvtemp=findViewById( R.id.temp );
-      tvwind=findViewById( R.id.wind );
-      tvpm=findViewById( R.id.pm );
-      tvicon=findViewById( R.id.imageView2 );
-      chuangan1_name1=findViewById( R.id.chuangan1_name1 );
-      chuangan1_name2=findViewById( R.id.chuangan1_name2 );
-      chuangan2_name1=findViewById( R.id.chuangan2_name1 );
-      chuangan2_name2=findViewById( R.id.chuangan2_name2 );
-      chuangan3_name1=findViewById( R.id.chuangan3_name1 );
-      chuangan3_name2=findViewById( R.id.chuangan3_name2 );
-      chuangan4_name1=findViewById( R.id.chuangan4_name1 );
-      chuangan4_name2=findViewById( R.id.chuangan4_name2 );
-      chuangan5_name1=findViewById( R.id.chuangan5_name1 );
-      chuangan5_name2=findViewById( R.id.chuangan5_name2 );
-      chuangan6_name1=findViewById( R.id.chuangan6_name1 );
-      chuangan6_name2=findViewById( R.id.chuangan6_name2 );
+        tvcity = findViewById( R.id.city );
+        tvweather = findViewById( R.id.weather );
+        tvtemp = findViewById( R.id.temp );
+        tvwind = findViewById( R.id.wind );
+        tvpm = findViewById( R.id.pm );
+        tvicon = findViewById( R.id.imageView2 );
+        chuangan1_name1 = findViewById( R.id.chuangan1_name1 );
+        chuangan1_name2 = findViewById( R.id.chuangan1_name2 );
+        chuangan2_name1 = findViewById( R.id.chuangan2_name1 );
+        chuangan2_name2 = findViewById( R.id.chuangan2_name2 );
+        chuangan3_name1 = findViewById( R.id.chuangan3_name1 );
+        chuangan3_name2 = findViewById( R.id.chuangan3_name2 );
+        chuangan4_name1 = findViewById( R.id.chuangan4_name1 );
+        chuangan4_name2 = findViewById( R.id.chuangan4_name2 );
+        chuangan5_name1 = findViewById( R.id.chuangan5_name1 );
+        chuangan5_name2 = findViewById( R.id.chuangan5_name2 );
+        chuangan6_name1 = findViewById( R.id.chuangan6_name1 );
+        chuangan6_name2 = findViewById( R.id.chuangan6_name2 );
+        button_update = findViewById( R.id.update );
     }
 }

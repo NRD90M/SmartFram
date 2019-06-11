@@ -1,29 +1,35 @@
 package com.example.slatejack.smartfrim1;
 
-import android.app.Activity;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class MqttManager {
-    public static final String TAG = MqttManager.class.getSimpleName();
+    public static final String TAG = "MQTT";
 
     private String host;
-    private String username;
-    private String password;
     private String clientId;
     //创建用于连接mqtt服务器的相关内容，分别是服务器的地址
-//还有就是服务器的相关密码账户，还有客户端的ID
-    private MqttClient client;
+    private MqttAndroidClient client;
     //创建mqttClient对象，以及连接的对象
     private MqttConnectOptions connectOptions;
+    private Context ctx;
+    private Handler handler;
+
+
 
     /**
      * 三个参数的构造方法
@@ -32,9 +38,11 @@ public class MqttManager {
      *  @param host
      *
      */
-    public MqttManager(String host,Activity activity){
+    public MqttManager(String host,Context context, Handler handler){
         this.host=host;
         this.clientId= MqttClient.generateClientId();
+        this.ctx = context;
+        this.handler = handler;
     }
 
 
@@ -47,10 +55,44 @@ public class MqttManager {
      */
     public void connect(){
         try{
-            client = new MqttClient(host,clientId,new MemoryPersistence());
+            client = new MqttAndroidClient(this.ctx, this.host, this.clientId  );
             connectOptions = new MqttConnectOptions();
-            client.setCallback(mqttCallback);
-            client.connect(connectOptions);
+            client.setCallback( new MqttCallbackExtended() {
+                @Override
+                public void connectComplete(boolean reconnect, String serverURI) {
+
+                }
+
+                @Override
+                public void connectionLost(Throwable cause) {
+
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    Log.i(TAG,"收到从："+topic+"发来的消息，内容为："+message.getPayload());
+                    Message m = new Message();
+                    m.obj = new String(message.getPayload(), "UTF-8");
+                    handler.sendMessage( m );
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+
+                }
+            } );
+            client.connect( connectOptions, null, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    Log.i(TAG,"连接成功");
+                    subscribe( "jcsf/gh/iotdata",0 );
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    Log.i(TAG,"连接失败，请重试", exception);
+                }
+            } );
 
         }catch (MqttException e){
             e.printStackTrace();
@@ -72,7 +114,17 @@ public class MqttManager {
             int[] Qos = {qos};
             String[] topic1 = {topic};
             try {
-                client.subscribe( topic1, Qos );
+                client.subscribe( topic1, Qos, null, new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        Log.i(TAG,"订阅成功！");
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        Log.i( TAG,"订阅失败！" );
+                    }
+                } );
                 Log.d( TAG, "订阅topic : " + topic );
             } catch (MqttException e) {
                 e.printStackTrace();
@@ -122,7 +174,7 @@ public class MqttManager {
         public void messageArrived(String topic, MqttMessage message) {
             Log.i( TAG, "received topic : " + topic );
             payload = new String( message.getPayload() );
-            //捕获从服务器端发送过来的信息通过下面的a（）函数传出去
+            //捕获从服务器端发送过来的信息通过下面的apply（）函数传出去
             Log.i( TAG, "received msg : " + payload );
 
         }
