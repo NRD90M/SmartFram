@@ -61,7 +61,8 @@ public class nongchang extends AppCompatActivity {
             e.printStackTrace();
         }
         //连接mqtt服务器
-        mqttManager=new MqttManager("tcp://118.24.19.135;1883",nongchang.this);
+        mqttManager=new MqttManager("tcp://118.24.19.135:1883",nongchang.this);
+        mqttManager.subscribe( "jcsf/gh/iotdata",0 );
         mqttManager.connect();
         Toast.makeText(getApplicationContext(),"连接成功", Toast.LENGTH_SHORT).show();
         //显示天气控件到文本框中
@@ -87,7 +88,6 @@ public class nongchang extends AppCompatActivity {
     }
 
     private void getmessage(){
-        mqttManager=new MqttManager("tcp://118.24.19.135;1883",nongchang.this);
         String message1;
         message1= mqttManager.apply();
         chuangan1_name2.setText( message1 );
