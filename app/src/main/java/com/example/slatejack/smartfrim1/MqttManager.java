@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -60,7 +62,12 @@ public class MqttManager {
             client.setCallback( new MqttCallbackExtended() {
                 @Override
                 public void connectComplete(boolean reconnect, String serverURI) {
-
+                    //发布查询开关状态消息
+                    Gson gson = new Gson();
+                    selectsw s1=new selectsw( "SW",0,"Query" );
+                    String s11=gson.toJson( s1 );
+                    publish( "jcsf/gh/control",s11,true,2 );
+                    Log.d( TAG,"主线程发出消息" +s11);
                 }
 
                 @Override
@@ -70,9 +77,10 @@ public class MqttManager {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    Log.i(TAG,"收到从："+topic+"发来的消息，内容为："+message.getPayload());
+                    String  s = new String(message.getPayload(), "UTF-8");
+                    Log.i(TAG,"收到从："+topic+"发来的消息，内容为："+s);
                     Message m = new Message();
-                    m.obj = new String(message.getPayload(), "UTF-8");
+                    m.obj = s;
                     handler.sendMessage( m );
                 }
 
@@ -154,7 +162,7 @@ public class MqttManager {
                 message.setRetained( isRetained );
                 message.setPayload( msg.getBytes() );
                 client.publish( topic, message );
-                Log.i( TAG, "publish: zzzzzzzzz" );
+                Log.i( TAG, "publish成功" );
             }
         } catch (MqttPersistenceException e) {
             e.printStackTrace();

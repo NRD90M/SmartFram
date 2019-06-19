@@ -6,6 +6,7 @@ public class Result {
     public String Obj;
     public int Num;
     public List<Sensor> Payload;
+    public int time[];
 
     public String getObj() {
         return Obj;
@@ -29,5 +30,13 @@ public class Result {
 
     public void setPayload(List<Sensor> payload) {
         Payload = payload;
+    }
+
+    public int[] getTime() {
+        return time;
+    }
+
+    public void setTime(int[] time) {
+        this.time = time;
     }
 }

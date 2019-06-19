@@ -5,6 +5,10 @@ import java.util.List;
 public class Sensor {
     public static final int SENSOR_LIGHT  = 1;
     public static final int SENSOR_CO2  = 2;
+    public static final int SENSOR_WATER1=3;
+    public static final int SENSOR_WATER2=4;
+    public static final int SENSOR_WATER3=5;
+    public static final int SENSOR_SOIL=10;
 
     private int ID;
     private int Type;
