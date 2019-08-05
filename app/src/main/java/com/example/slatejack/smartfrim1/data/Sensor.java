@@ -37,4 +37,8 @@ public class Sensor {
     public void setData(List<Float> data) {
         Data = data;
     }
+
+
+
+
 }
