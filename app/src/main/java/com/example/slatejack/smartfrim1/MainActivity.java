@@ -1,9 +1,11 @@
 package com.example.slatejack.smartfrim1;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -61,5 +63,23 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate( R.menu.bottom_nav_menu, menu );
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.navigation_home:
+                Intent intent=new Intent(MainActivity.this,nongchang.class);
+                MainActivity.this.startActivity( intent );
+                break;
+            case R.id.navigation_dashboard:
+                Toast.makeText( this,"请点击界面底部按钮选择控制",Toast.LENGTH_SHORT ).show();
+                break;
+            case R.id.navigation_notifications:
+                Toast.makeText( this,"请点击界面底部按钮选择配置",Toast.LENGTH_SHORT ).show();
+                break;
+
+        }
+        return super.onOptionsItemSelected( item );
     }
 }
