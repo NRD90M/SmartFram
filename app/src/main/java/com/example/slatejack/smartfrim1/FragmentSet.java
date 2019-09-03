@@ -108,7 +108,7 @@ public class FragmentSet extends Fragment{
         View txview=inflater.inflate( R.layout.fragment_fragment_set,container,false );
         initView(txview);
         new Thread(new FragmentSet.NewThread()).start();
-        /*
+        /*已弃用，改用通过json接口方式传输数据
         //解析xml文件
         InputStream inputStream = getResources().openRawResource( R.raw.weather );
         try {
@@ -159,7 +159,7 @@ public class FragmentSet extends Fragment{
     }
 
     /**
-     * 通过写入固定xml信息获取天气信息，已弃用
+     * 通过写入固定xml信息获取天气信息，已弃用，改用通过json接口的方式传递数据
      * @param number
      * @param iconnumber
      */
@@ -175,7 +175,6 @@ public class FragmentSet extends Fragment{
         tvwind.setText( wind );
         tvpm.setText( pm );
         tvicon.setImageResource( iconnumber );
-
     }
 
     /**
@@ -202,7 +201,7 @@ public class FragmentSet extends Fragment{
     }
 
     /**
-     * switch按钮监听
+     * switch按钮监听，传递数据等
      */
     private void changelistener(){
         final Gson gson=new Gson();

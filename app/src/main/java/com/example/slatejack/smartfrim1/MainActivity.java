@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText( this,"请点击界面底部按钮选择控制",Toast.LENGTH_SHORT ).show();
                 break;
             case R.id.navigation_notifications:
-                Toast.makeText( this,"请点击界面底部按钮选择配置",Toast.LENGTH_SHORT ).show();
+                Toast.makeText( this,"请点击界面底部按钮选择关于",Toast.LENGTH_SHORT ).show();
                 break;
 
         }

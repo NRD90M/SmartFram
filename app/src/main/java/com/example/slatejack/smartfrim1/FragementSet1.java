@@ -144,6 +144,7 @@ public class FragementSet1 extends Fragment {
         } );
         sb_zy.setOnSeekBarChangeListener( new SeekBar.OnSeekBarChangeListener() {
             private int  value;
+
             private void send(int value) {
                 if (!zyseeking) {
                     //send mqtt

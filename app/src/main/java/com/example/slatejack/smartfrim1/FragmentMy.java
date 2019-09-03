@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -19,12 +20,14 @@ import androidx.fragment.app.Fragment;
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource( R.xml.activity_settings,rootKey );
     }*///只有确认将最后一页为设置界面时将此处取消注释
-
+    TextView textView14;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View txview=inflater.inflate( R.layout.fragment_fragment_my, container, false );
+        textView14=txview.findViewById( R.id.textView14 );
+        textView14.setText( "v2.0.2" );//版本号修改
         return txview;
     }
 }
